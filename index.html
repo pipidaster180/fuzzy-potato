@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mega Soundboard 2026</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --btn-sound: #10b981;
+            --btn-stop: #ef4444;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, system-ui, sans-serif;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 1.2rem;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #334155;
+            margin-bottom: 1rem;
+        }
+
+        h1 { font-size: 1.2rem; text-align: center; margin: 0 0 1rem 0; color: var(--accent); }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 10px;
+            border-radius: 0.6rem;
+            font-size: 16px;
+            resize: none;
+            margin-bottom: 10px;
+        }
+
+        .controls { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+        
+        select {
+            background: #0f172a;
+            color: white;
+            border: 1px solid #334155;
+            padding: 8px;
+            border-radius: 0.5rem;
+        }
+
+        .main-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            border: none;
+            border-radius: 0.6rem;
+            color: #0f172a;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* Сетка звуков (3 колонки для экономии места на телефоне) */
+        .soundboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .sound-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 15px 5px;
+            border-radius: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sound-btn:active { background: #334155; }
+
+        .sound-btn.stop {
+            grid-column: span 3;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--btn-stop);
+            color: var(--btn-stop);
+            margin-top: 10px;
+        }
+
+        label { font-size: 0.7rem; color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AI VOICE & SOUNDS</h1>
+    <textarea id="text-input" placeholder="Текст для озвучки..."></textarea>
+    <div class="controls">
+        <select id="voice-select"></select>
+        <button class="main-btn" id="speak-btn">ОЗВУЧИТЬ</button>
+    </div>
+</div>
+
+<div class="soundboard">
+    <div class="sound-btn" onclick="playSound('пердешь.mp3')">💨<span>Пердеж</span></div>
+    <div class="sound-btn" onclick="playSound('есть пробитие.mp3')">🎯<span>Пробитие</span></div>
+    <div class="sound-btn" onclick="playSound('фонк.mp3')">🎧<span>Фонк</span></div>
+    <div class="sound-btn" onclick="playSound('ооуй.mp3')">😯<span>Ооуй</span></div>
+    <div class="sound-btn" onclick="playSound('телефон звонит.mp3')">📞<span>Звонок</span></div>
+    
+    <div class="sound-btn" onclick="playSound('гимн россий.mp3')">🇷🇺<span>Гимн РФ</span></div>
+    <div class="sound-btn" onclick="playSound('гимн качкев.mp3')">💪<span>Гимн Качков</span></div>
+    <div class="sound-btn" onclick="playSound('ссср.mp3')">🚩<span>СССР</span></div>
+    <div class="sound-btn" onclick="playSound('повезло повезло.mp3')">🍀<span>Повезло</span></div>
+    <div class="sound-btn" onclick="playSound('от винта.mp3')">⚙️<span>От винта</span></div>
+    <div class="sound-btn" onclick="playSound('маты ааа.mp3')">🤬<span>Маты</span></div>
+    <div class="sound-btn" onclick="playSound('очень очень громко.mp3')">🔊<span>ГРОМКО</span></div>
+
+    <div class="sound-btn stop" onclick="stopAll()">🛑 ОСТАНОВИТЬ ВСЁ</div>
+</div>
+
+<script>
+    const synth = window.speechSynthesis;
+    const voiceSelect = document.querySelector('#voice-select');
+    const textInput = document.querySelector('#text-input');
+    const speakBtn = document.querySelector('#speak-btn');
+
+    let activeAudios = [];
+
+    function playSound(fileName) {
+        const audio = new Audio(fileName);
+        activeAudios.push(audio);
+        audio.play().catch(e => console.log("Файл не найден"));
+        audio.onended = () => activeAudios = activeAudios.filter(a => a !== audio);
+    }
+
+    function stopAll() {
+        activeAudios.forEach(a => { a.pause(); a.currentTime = 0; });
+        activeAudios = [];
+        synth.cancel();
+    }
+
+    function loadVoices() {
+        let voices = synth.getVoices();
+        voiceSelect.innerHTML = voices
+            .filter(v => v.lang.includes('ru')) // Оставляем только русские для удобства
+            .map(v => `<option value="${v.name}">${v.name}</option>`)
+            .join('');
+    }
+
+    loadVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    speakBtn.onclick = () => {
+        if (textInput.value.trim() === '') return;
+        const utterance = new SpeechSynthesisUtterance(textInput.value);
+        utterance.voice = synth.getVoices().find(v => v.name === voiceSelect.value);
+        synth.speak(utterance);
+    };
+</script>
+
+</body>
+</html>
